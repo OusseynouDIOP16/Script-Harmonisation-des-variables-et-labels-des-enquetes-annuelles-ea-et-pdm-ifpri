@@ -1,0 +1,93 @@
+---
+---
+title: "Mauritania - Variables harmonization for all surveys and years"
+author: "DIOP Ousseynou & KPAKOU M'Mounéné"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+  )
+```
+
+```{r packages needed}
+library(haven)
+library(labelled)
+library(tidyverse)
+library(dplyr)
+library(Hmisc)
+library(gtsummary)
+library(readxl)
+library(foreign)
+```
+
+```{r}
+rm(list = ls())
+```
+
+```{r environment settings}
+
+dir_input_data = "C:/Users/dell/Desktop/ENSAE/ISEP3/Statistique spatiale/Pré-projet/data/input_data/Mauritania"
+dir_output_data = "C:/Users/dell/Desktop/ENSAE/ISEP3/Statistique spatiale/Pré-projet/data/output_data/Mauritania"
+```
+
+```{r read harmonization excel file}
+
+Mauritania_Harmonization_variables <- read_excel(paste0(dir_input_data,"/MRT_Harmonization.xlsx"), 
+    sheet = "variables_harmonization")
+#View(Mauritania_Harmonization_variables)
+
+Mauritania_Harmonization_description <- read_excel(paste0(dir_input_data,"/MRT_Harmonization.xlsx"), 
+    sheet = "description")
+#View(Mauritania_Harmonization_description)
+```
+
+```{r data importation}
+
+lst_data = Mauritania_Harmonization_description$Data
+lst_test = Mauritania_Harmonization_description$Name
+
+#for(i in 1:length(lst_data)) {                              # Head of for-loop
+#  assign(lst_test[i],                                   # Read and store data frames
+#         read_sav(paste0(dir_input_data,"/",lst_data[i])))
+#}
+
+for (i in 1:length(lst_data)) {
+  file_path <- paste0(dir_input_data, "/", lst_data[i])
+  
+  if (file.exists(file_path) && tolower(substr(lst_data[i], nchar(lst_data[i]) - 3,nchar(lst_data[i]))) == ".sav") {
+    assign(lst_test[i], read_sav(file_path))
+  }
+  else if (file.exists(file_path) && tolower(substr(lst_data[i], nchar(lst_data[i]) - 3,nchar(lst_data[i]))) == ".dta") {
+    assign(lst_test[i], read_dta(file_path))
+  }
+  else {
+    cat("Le fichier", file_path, "n'existe pas ou n'est pas pris en charge.\n")
+    next  
+  }
+}
+
+
+```
+
+
+```{r select and rename columns needed}
+
+for (j in 1:length(lst_test)){
+         df=  get(lst_test[j], envir = .GlobalEnv)
+          for (i in 1:nrow(Mauritania_Harmonization_variables)){
+            df[,Mauritania_Harmonization_variables$NewVariable_Name[i]]=ifelse(is.na(Mauritania_Harmonization_variables[i,lst_test[j]]),NA,df[,Mauritania_Harmonization_variables[i,lst_test[j]][[1]]])
+          }
+    df<-df %>% select(Mauritania_Harmonization_variables$NewVariable_Name)
+    write_sav(df, paste0(dir_output_data,"/",lst_test[j],".sav"))
+    
+
+}
+
+
+
+```
