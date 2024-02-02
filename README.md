@@ -1,0 +1,1 @@
+Nous possédons 8 bases de données provenant des enquêtes EA et PDM en Mauritanie. Afin de réaliser une analyse spatiale sur l'ensemble de ces bases, il est essentiel de les harmoniser pour créer une base finale regroupant toutes les variables (essentielles) et observations.
